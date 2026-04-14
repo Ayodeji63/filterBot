@@ -30,14 +30,31 @@ const lastOppSent = new Map(); // groupId → timestamp of last sent opportunity
 
 // ── Initialise ───────────────────────────────────────────
 
-export function initWhatsApp() {
+import { existsSync } from "fs";
+
+function getChromePath() {
+  const candidates = [
+    process.env.CHROME_PATH,
+    "/usr/bin/chromium-browser",
+    "/usr/bin/chromium",
+    "/usr/bin/google-chrome-stable",
+    "/usr/bin/brave-browser",
+  ].filter(Boolean);
+
+  for (const p of candidates) {
+    if (existsSync(p)) return p;
+  }
+  return undefined; // let Puppeteer use its own downloaded Chrome
+}
+
+export async function initWhatsApp() {
   console.log("🟡 Initialising WhatsApp client…");
 
   whatsappClient = new Client({
     authStrategy: new LocalAuth({ dataPath: "./data/.wwebjs_auth" }),
     puppeteer: {
       headless: true,
-      executablePath: "/usr/bin/brave-browser",
+      executablePath: getChromePath(),
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",

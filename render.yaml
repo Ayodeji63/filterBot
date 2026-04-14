@@ -1,0 +1,25 @@
+services:
+  - type: worker
+    name: filterbot
+    runtime: node
+    buildCommand: npm install && npx puppeteer browsers install chrome
+    startCommand: node src/index.js
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REDIRECT_URI
+        sync: false
+      - key: PORT
+        value: 3000
+      - key: PUPPETEER_CACHE_DIR
+        value: /opt/render/project/.cache/puppeteer
+    disk:
+      name: filterbot-data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1
