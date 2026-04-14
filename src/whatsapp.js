@@ -25,6 +25,7 @@ import {
   getUsersMonitoringGroup,
 } from "./db.js";
 import { hasCalendarConnected, getAuthUrl, createCalendarEvent } from "./calendar.js";
+import { enrichMessage } from "./scraper.js";
 let whatsappClient = null;
 const lastOppSent = new Map(); // groupId → timestamp of last sent opportunity (for rate-limiting)
 
@@ -145,16 +146,34 @@ async function handleGroupMessage(msg, chat) {
   const groupId = chat.id._serialized;
   const groupName = chat.name || groupId;
 
-  if (msg.type !== "chat") return;
+  // if (msg.type !== "chat") return;
 
-  if (isMessageSeen(msg.id._serialized)) {
-    console.log(`   ⏭  Already processed — skipping duplicate`);
-    return;
-  }
+  // if (isMessageSeen(msg.id._serialized)) {
+  //   console.log(`   ⏭  Already processed — skipping duplicate`);
+  //   return;
+  // }
+  // await markMessageSeen(msg.id._serialized);
+
+  // const messageText = msg.body;
+  // if (!messageText || messageText.length < 20) return;
+
+  // Skip types we can never extract anything from
+  const SKIPPABLE = ["sticker", "audio", "ptt", "document", "location", "contact"];
+  if (SKIPPABLE.includes(msg.type)) return;
+
+  // Dedup — skip if we've already processed this message
+  if (isMessageSeen(msg.id._serialized)) return;
   await markMessageSeen(msg.id._serialized);
 
-  const messageText = msg.body;
-  if (!messageText || messageText.length < 20) return;
+  // Enrich message — scrapes URLs, reads images via Gemini Vision
+  const messageText = await enrichMessage(msg, msg.body);
+  if (!messageText || messageText.trim().length < 15) {
+    console.log(`   ⏭  No usable content extracted — skipping`);
+    return;
+  }
+
+  console.log(`\n💬 "${groupName}" | ${interestedUsers.length} subscriber(s) | "${(msg.body || "[image/link]").slice(0, 80)}…"`);
+  console.log(`   🤖 Running filter… (${messageText.length} chars after enrichment)`);
 
   // Only fetch users who have subscribed to THIS group
   const interestedUsers = getUsersMonitoringGroup(groupId);
@@ -164,10 +183,10 @@ async function handleGroupMessage(msg, chat) {
     return;
   }
 
-  console.log(
-    `\n💬 "${groupName}" | ${interestedUsers.length} subscriber(s) | "${messageText.slice(0, 80)}…"`
-  );
-  console.log(`   🤖 Running Claude filter…`);
+  // console.log(
+  //   `\n💬 "${groupName}" | ${interestedUsers.length} subscriber(s) | "${messageText.slice(0, 80)}…"`
+  // );
+  // console.log(`   🤖 Running Claude filter…`);
 
   const matches = await filterForAllUsers(messageText, interestedUsers, 50);
 
