@@ -172,8 +172,7 @@ async function handleGroupMessage(msg, chat) {
     return;
   }
 
-  console.log(`\n💬 "${groupName}" | ${interestedUsers.length} subscriber(s) | "${(msg.body || "[image/link]").slice(0, 80)}…"`);
-  console.log(`   🤖 Running filter… (${messageText.length} chars after enrichment)`);
+  
 
   // Only fetch users who have subscribed to THIS group
   const interestedUsers = getUsersMonitoringGroup(groupId);
@@ -187,6 +186,8 @@ async function handleGroupMessage(msg, chat) {
   //   `\n💬 "${groupName}" | ${interestedUsers.length} subscriber(s) | "${messageText.slice(0, 80)}…"`
   // );
   // console.log(`   🤖 Running Claude filter…`);
+  console.log(`\n💬 "${groupName}" | ${interestedUsers.length} subscriber(s) | "${(msg.body || "[image/link]").slice(0, 80)}…"`);
+  console.log(`   🤖 Running filter… (${messageText.length} chars after enrichment)`);
 
   const matches = await filterForAllUsers(messageText, interestedUsers, 50);
 

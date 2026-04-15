@@ -9,7 +9,7 @@
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY_2);
 
 // ── URL scraper ───────────────────────────────────────────
 
@@ -121,7 +121,7 @@ export async function extractTextFromImage(msg) {
       return null;
     }
 
-    const visionModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const visionModel = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
     const result = await visionModel.generateContent([
       {
